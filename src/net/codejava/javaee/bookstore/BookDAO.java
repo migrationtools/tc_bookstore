@@ -1,19 +1,17 @@
 package net.codejava.javaee.bookstore;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BookDAO {
-	private String jdbcURL;
-	private String jdbcUsername;
-	private String jdbcPassword;
 	private Connection jdbcConnection;
 	
-	public BookDAO(String jdbcURL, String jdbcUsername, String jdbcPassword) throws SQLException {
-		this.jdbcURL = jdbcURL;
-		this.jdbcUsername = jdbcUsername;
-		this.jdbcPassword = jdbcPassword;
+	public BookDAO() throws SQLException {
 		initDb();
 	}
 
@@ -45,12 +43,14 @@ public class BookDAO {
 	protected void connect() throws SQLException {
 		if (jdbcConnection == null || jdbcConnection.isClosed()) {
 			try {
-				Class.forName("org.h2.Driver");
-			} catch (ClassNotFoundException e) {
+				Context initContext = new InitialContext();
+				Context envContext  = (Context)initContext.lookup("java:/comp/env");
+				DataSource ds = (DataSource)envContext.lookup("jdbc/myh2");
+				jdbcConnection = ds.getConnection();
+
+			} catch (NamingException e) {
 				throw new SQLException(e);
 			}
-			jdbcConnection = DriverManager.getConnection(
-										jdbcURL, jdbcUsername, jdbcPassword);
 		}
 	}
 	
